@@ -22,17 +22,17 @@ export default class DuckDBDriver extends AbstractDriver<DriverLib, DriverOption
     version: '1.3.2',
   }];
 
-  queries = queries;
+  queries = queries;  
 
   public async open(): Promise<typeof Database> {
     const { Database, OPEN_READONLY, OPEN_READWRITE } = this.requireDep('duckdb-async')
     if (this.connection) {
       return this.connection;
-    }
+    }  
     try {
       var mode = null;
-
-      if (this.credentials.accessMode === "Read/Write" || this.credentials.databaseFilePath === ':memory:') {
+      
+      if( this.credentials.accessMode === "Read/Write" || this.credentials.databaseFilePath === ':memory:') {
         mode = OPEN_READWRITE;
       } else {
         mode = OPEN_READONLY;
@@ -41,12 +41,12 @@ export default class DuckDBDriver extends AbstractDriver<DriverLib, DriverOption
       this.connection = db;
       return Promise.resolve(db);
     } catch (error) {
-      throw (error);
+      throw(error);
     }
   }
 
   public async close() {
-    if (this.connection) {
+    if(this.connection){
       const db = await this.connection;
       db.close();
       this.connection = null;
@@ -55,7 +55,7 @@ export default class DuckDBDriver extends AbstractDriver<DriverLib, DriverOption
 
   private convertBigIntToNumber(value: any): any {
     if (typeof value === 'bigint') {
-      return Number(value);
+        return Number(value);
     }
     if (Array.isArray(value)) {
       // Recursively process arrays
@@ -82,29 +82,29 @@ export default class DuckDBDriver extends AbstractDriver<DriverLib, DriverOption
       return row;
     });
   }
-
+  
   public query: (typeof AbstractDriver)['prototype']['query'] = async (query, opt = {}) => {
     const db = await this.open();
     const { requestId } = opt;
     let resultsAgg: NSDatabase.IResult[] = [];
-    const rawRows = await db.all(query.toString());
-    const rows = this.normalizeRows(rawRows);
-    var messages = [];
-    if (rows.length === 0) {
-      messages = ['Query executed successfully, no results returned.'];
-    }
-    else {
-      messages = ["Successfully returned " + rows.length + " rows."];
-    }
-    resultsAgg.push(<NSDatabase.IResult>{
-      requestId,
-      resultId: generateId(),
-      connId: this.getId(),
-      cols: rows && rows.length ? Object.keys(rows[0]) : [],
-      messages,
-      query: query,
-      results: rows,
-    });
+      const rawRows = await db.all(query.toString());
+      const rows = this.normalizeRows(rawRows);
+      var messages = [];
+      if (rows.length === 0) {
+        messages = ['Query executed successfully, no results returned.'];
+        }
+      else {
+        messages = ["Successfully returned " + rows.length + " rows." ];
+        }
+      resultsAgg.push(<NSDatabase.IResult>{
+        requestId,
+        resultId: generateId(),
+        connId: this.getId(),
+        cols: rows && rows.length ? Object.keys(rows[0]) : [],
+        messages,
+        query: query,
+        results: rows,
+      });
     return resultsAgg;
   }
 
@@ -129,9 +129,9 @@ export default class DuckDBDriver extends AbstractDriver<DriverLib, DriverOption
           schema: null,
           type: ContextValue.DATABASE
         }));
-      case ContextValue.DATABASE:
-        return this.queryResults(this.queries.fetchSchemas(item as NSDatabase.IDatabase));
-      case ContextValue.SCHEMA:
+        case ContextValue.DATABASE:
+          return this.queryResults(this.queries.fetchSchemas(item as NSDatabase.IDatabase));
+        case ContextValue.SCHEMA:
         return <MConnectionExplorer.IChildItem[]>[
           { label: 'Tables', type: ContextValue.RESOURCE_GROUP, iconId: 'folder', childType: ContextValue.TABLE },
           { label: 'Views', type: ContextValue.RESOURCE_GROUP, iconId: 'folder', childType: ContextValue.VIEW }
