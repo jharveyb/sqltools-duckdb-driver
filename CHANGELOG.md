@@ -1,5 +1,11 @@
 # Change Log
 
+## 1.3.2
+- v1.3.2 DuckDB Support
+
+## 1.0.0
+- v1.0.0 DuckDB Support
+
 ## 0.10.2
 - v0.10.2 DuckDB support
 - Changed semantic versioning to follow DuckDB's
