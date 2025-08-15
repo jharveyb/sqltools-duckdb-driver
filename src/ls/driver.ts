@@ -32,7 +32,7 @@ export default class DuckDBDriver extends AbstractDriver<DriverLib, DriverOption
     try {
       var mode = null;
 
-      if( this.credentials.accessMode === "Read/Write" || this.credentials.databaseFilePath === ':memory:') {
+      if (this.credentials.accessMode === "Read/Write" || this.credentials.databaseFilePath === ':memory:') {
         mode = OPEN_READWRITE;
       } else {
         mode = OPEN_READONLY;
@@ -41,12 +41,12 @@ export default class DuckDBDriver extends AbstractDriver<DriverLib, DriverOption
       this.connection = db;
       return Promise.resolve(db);
     } catch (error) {
-      throw(error);
+      throw (error);
     }
   }
 
   public async close() {
-    if(this.connection){
+    if (this.connection) {
       const db = await this.connection;
       db.close();
       this.connection = null;
@@ -56,6 +56,20 @@ export default class DuckDBDriver extends AbstractDriver<DriverLib, DriverOption
   private convertBigIntToNumber(value: any): any {
     if (typeof value === 'bigint') {
       return Number(value);
+    }
+    if (Array.isArray(value)) {
+      // Recursively process arrays
+      return value.map(item => this.convertBigIntToNumber(item));
+    }
+    if (value !== null && typeof value === 'object') {
+      // Recursively process objects/structs
+      const converted = {};
+      for (const key in value) {
+        if (value.hasOwnProperty(key)) {
+          converted[key] = this.convertBigIntToNumber(value[key]);
+        }
+      }
+      return converted;
     }
     return value;
   }
@@ -80,8 +94,8 @@ export default class DuckDBDriver extends AbstractDriver<DriverLib, DriverOption
       messages = ['Query executed successfully, no results returned.'];
     }
     else {
-      messages = ["Successfully returned " + rows.length + " rows." ];
-      }
+      messages = ["Successfully returned " + rows.length + " rows."];
+    }
     resultsAgg.push(<NSDatabase.IResult>{
       requestId,
       resultId: generateId(),
