@@ -19,7 +19,7 @@ export default class DuckDBDriver extends AbstractDriver<DriverLib, DriverOption
   public readonly deps: typeof AbstractDriver.prototype['deps'] = [{
     type: AbstractDriver.CONSTANTS.DEPENDENCY_PACKAGE,
     name: 'duckdb-async',
-    version: '0.10.2',
+    version: '1.3.2',
   }];
 
   queries = queries;  
@@ -56,6 +56,20 @@ export default class DuckDBDriver extends AbstractDriver<DriverLib, DriverOption
   private convertBigIntToNumber(value: any): any {
     if (typeof value === 'bigint') {
         return Number(value);
+    }
+    if (Array.isArray(value)) {
+      // Recursively process arrays
+      return value.map(item => this.convertBigIntToNumber(item));
+    }
+    if (value !== null && typeof value === 'object') {
+      // Recursively process objects/structs
+      const converted = {};
+      for (const key in value) {
+        if (value.hasOwnProperty(key)) {
+          converted[key] = this.convertBigIntToNumber(value[key]);
+        }
+      }
+      return converted;
     }
     return value;
   }
